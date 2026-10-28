@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareerMatch - Job Matching Dashboard</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      color: #172554;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    header {
+      background: #172554;
+      color: white;
+      padding: 28px;
+      border-radius: 16px;
+    }
+
+    header p {
+      color: #cbd5e1;
+    }
+
+    .panel {
+      background: white;
+      padding: 24px;
+      margin-top: 22px;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px #0000000d;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 12px 18px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .job {
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 14px;
+    }
+
+    .score {
+      font-weight: bold;
+      color: #047857;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1d4ed8;
+      padding: 6px 9px;
+      margin: 4px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: #64748b;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 12px;
+      }
+
+      header, .panel {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>CareerMatch</h1>
+      <p>Your skills. Your career. Your next opportunity.</p>
+    </header>
+
+    <section class="panel">
+      <h2>Find Your Job Match</h2>
+      <p>Enter your skills separated by commas.</p>
+
+      <input
+        id="skills"
+        type="text"
+        placeholder="e.g. HTML, CSS, JavaScript"
+      >
+
+      <button id="matchButton">Find My Match</button>
+      <div id="results" aria-live="polite"></div>
+    </section>
+
+    <footer>
+      CareerMatch | Personal Career Discovery Project
+    </footer>
+  </div>
+
+  <script>
+    const jobs = [
+      {
+        title: "Frontend Developer Intern",
+        company: "Sample Company",
+        skills: ["html", "css", "javascript"]
+      },
+      {
+        title: "Junior Web Developer",
+        company: "Sample Company",
+        skills: ["html", "css", "javascript", "react"]
+      },
+      {
+        title: "UI Developer",
+        company: "Sample Company",
+        skills: ["html", "css", "figma"]
+      },
+      {
+        title: "Python Developer Intern",
+        company: "Sample Company",
+        skills: ["python", "sql", "git"]
+      }
+    ];
+
+    const skillsInput = document.getElementById("skills");
+    const results = document.getElementById("results");
+
+    document.getElementById("matchButton")
+      .addEventListener("click", function () {
+        const userSkills = skillsInput.value
+          .toLowerCase()
+          .split(",")
+          .map(skill => skill.trim())
+          .filter(Boolean);
+
+        results.replaceChildren();
+
+        if (userSkills.length === 0) {
+          results.textContent = "Please enter your skills first.";
+          return;
+        }
+
+        const heading = document.createElement("h2");
+        heading.textContent = "Your Matching Results";
+        results.appendChild(heading);
+
+        const rankedJobs = jobs.map(job => {
+          const matched = job.skills.filter(skill =>
+            userSkills.includes(skill)
+          );
+
+          return {
+            ...job,
+            matched,
+            score: Math.round(
+              matched.length / job.skills.length * 100
+            )
+          };
+        }).sort((a, b) => b.score - a.score);
+
+        rankedJobs.forEach(job => {
+          const card = document.createElement("article");
+          card.className = "job";
+
+          const title = document.createElement("h3");
+          title.textContent = job.title;
+
+          const company = document.createElement("p");
+          company.textContent = job.company +
+            " (Sample listing — not a real vacancy)";
+
+          const score = document.createElement("p");
+          score.className = "score";
+          score.textContent = "Skill Match: " + job.score + "%";
+
+          const matchedTitle = document.createElement("p");
+          matchedTitle.textContent = "Matching skills:";
+
+          const tags = document.createElement("div");
+
+          if (job.matched.length === 0) {
+            tags.textContent = "No matching skills yet.";
+          } else {
+            job.matched.forEach(skill => {
+              const tag = document.createElement("span");
+              tag.className = "tag";
+              tag.textContent = skill;
+              tags.appendChild(tag);
+            });
+          }
+
+          const missing = job.skills.filter(skill =>
+            !userSkills.includes(skill)
+          );
+
+          const gap = document.createElement("p");
+          gap.textContent = "Skills to learn: " +
+            (missing.join(", ") || "None");
+
+          card.append(title, company, score, matchedTitle, tags, gap);
+          results.appendChild(card);
+        });
+      });
+  </script>
+</body>
+</html>
